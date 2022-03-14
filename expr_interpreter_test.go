@@ -44,6 +44,16 @@ func Test_Evaluate(t *testing.T) {
 			want:  false,
 		},
 		{
+			name:  "neg operator",
+			input: "!false",
+			want:  true,
+		},
+		{
+			name:  "neg operator",
+			input: "!true",
+			want:  false,
+		},
+		{
 			name:  "comparison eq - equal strings",
 			input: "'test' == 'test'",
 			want:  true,

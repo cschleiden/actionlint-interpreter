@@ -15,6 +15,9 @@ func Evaluate(n actionlint.ExprNode) interface{} {
 	case *actionlint.BoolNode:
 		return tn.Value
 
+	case *actionlint.NotOpNode:
+		return !Evaluate(tn.Operand).(bool)
+
 	case *actionlint.CompareOpNode:
 		left := Evaluate(tn.Left)
 		right := Evaluate(tn.Right)
