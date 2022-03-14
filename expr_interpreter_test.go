@@ -19,19 +19,34 @@ func Test_Evaluate(t *testing.T) {
 			want:  "test",
 		},
 		{
-			name:  "number",
+			name:  "int",
 			input: "12",
 			want:  12,
 		},
 		{
-			name:  "negative number",
+			name:  "negative int",
 			input: "-12",
 			want:  -12,
 		},
 		{
-			name:  "number 0",
+			name:  "int 0",
 			input: "0",
 			want:  0,
+		},
+		{
+			name:  "float",
+			input: "12.5",
+			want:  float64(12.5),
+		},
+		{
+			name:  "negative float",
+			input: "-12.3",
+			want:  float64(-12.3),
+		},
+		{
+			name:  "float 0",
+			input: "0.0",
+			want:  float64(0.0),
 		},
 		{
 			name:  "bool true",

@@ -9,6 +9,9 @@ func Evaluate(n actionlint.ExprNode) interface{} {
 	case *actionlint.IntNode:
 		return tn.Value
 
+	case *actionlint.FloatNode:
+		return tn.Value
+
 	case *actionlint.StringNode:
 		return tn.Value
 
@@ -30,3 +33,9 @@ func Evaluate(n actionlint.ExprNode) interface{} {
 
 	panic("unknown node")
 }
+
+// func coerce(v interface{}) interface{} {
+// 	switch x := v.(type) {
+// 		case int:
+// 	}
+// }
