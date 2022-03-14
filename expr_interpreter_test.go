@@ -103,6 +103,16 @@ func Test_Evaluate(t *testing.T) {
 			input: "true == true",
 			want:  true,
 		},
+		{
+			name:  "fcall - startsWith",
+			input: "startsWith('test', 'te')",
+			want:  true,
+		},
+		{
+			name:  "fcall - startsWith - false",
+			input: "startsWith('test', 'xe')",
+			want:  false,
+		},
 		// {
 		// 	name:  "comparison eq - equal string number",
 		// 	input: "'2' == 2",
@@ -113,12 +123,15 @@ func Test_Evaluate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			lexer := actionlint.NewExprLexer(tt.input + "}}")
 			parser := actionlint.NewExprParser()
-			n, err := parser.Parse(lexer)
-			if err != nil {
-				t.Fatal(err.Error())
+			n, perr := parser.Parse(lexer)
+			if perr != nil {
+				t.Fatal(perr.Error())
 			}
 
-			if got := Evaluate(n); !reflect.DeepEqual(got, tt.want) {
+			got, err := Evaluate(n)
+			if err != nil {
+				t.Errorf("Evaluate() error = %v", err)
+			} else if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("evaluate() = %v, want %v", got, tt.want)
 			}
 		})
