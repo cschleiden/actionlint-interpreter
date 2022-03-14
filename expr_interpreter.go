@@ -6,7 +6,13 @@ import (
 
 func Evaluate(n actionlint.ExprNode) interface{} {
 	switch tn := n.(type) {
+	case *actionlint.IntNode:
+		return tn.Value
+
 	case *actionlint.StringNode:
+		return tn.Value
+
+	case *actionlint.BoolNode:
 		return tn.Value
 
 	case *actionlint.CompareOpNode:
