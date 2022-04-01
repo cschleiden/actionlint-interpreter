@@ -2,7 +2,10 @@ module github.com/cschleiden/exprint
 
 go 1.17
 
-require github.com/rhysd/actionlint v1.6.10
+require (
+	github.com/pkg/errors v0.9.1
+	github.com/rhysd/actionlint v1.6.10
+)
 
 require (
 	github.com/fatih/color v1.13.0 // indirect

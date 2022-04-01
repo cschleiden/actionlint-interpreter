@@ -1,4 +1,4 @@
-package main
+package expr
 
 import (
 	"reflect"
@@ -9,9 +9,10 @@ import (
 
 func Test_Evaluate(t *testing.T) {
 	tests := []struct {
-		name  string
-		input string
-		want  interface{}
+		name    string
+		input   string
+		want    interface{}
+		context map[string]interface{}
 	}{
 		{
 			name:  "string literal",
@@ -69,6 +70,24 @@ func Test_Evaluate(t *testing.T) {
 			want:  false,
 		},
 		{
+			name:    "context access - one level",
+			input:   "input",
+			context: map[string]interface{}{"input": 42},
+			want:    42,
+		},
+		{
+			name:    "context access - object dereferece",
+			input:   "input.test2.test",
+			context: map[string]interface{}{"input": map[string]interface{}{"test2": map[string]interface{}{"test": 42}}},
+			want:    42,
+		},
+		{
+			name:    "context access - mixed dereferece",
+			input:   "input.test[1]",
+			context: map[string]interface{}{"input": map[string]interface{}{"test": []interface{}{23, 42}}},
+			want:    42,
+		},
+		{
 			name:  "comparison eq - equal strings",
 			input: "'test' == 'test'",
 			want:  true,
@@ -105,13 +124,25 @@ func Test_Evaluate(t *testing.T) {
 		},
 		{
 			name:  "fcall - startsWith",
-			input: "startsWith('test', 'te')",
+			input: "startsWith('test', 'tE')",
 			want:  true,
 		},
 		{
 			name:  "fcall - startsWith - false",
 			input: "startsWith('test', 'xe')",
 			want:  false,
+		},
+		{
+			name:    "fcall - join",
+			input:   "join(inputs.values)",
+			context: map[string]interface{}{"inputs": map[string]interface{}{"values": []interface{}{"42", "1"}}},
+			want:    "42,1",
+		},
+		{
+			name:    "fcall - join - custom seperator",
+			input:   "join(inputs.values, ':')",
+			context: map[string]interface{}{"inputs": map[string]interface{}{"values": []interface{}{"42", "1"}}},
+			want:    "42:1",
 		},
 		// {
 		// 	name:  "comparison eq - equal string number",
@@ -128,7 +159,7 @@ func Test_Evaluate(t *testing.T) {
 				t.Fatal(perr.Error())
 			}
 
-			got, err := Evaluate(n)
+			got, err := Evaluate(n, tt.context)
 			if err != nil {
 				t.Errorf("Evaluate() error = %v", err)
 			} else if !reflect.DeepEqual(got, tt.want) {
