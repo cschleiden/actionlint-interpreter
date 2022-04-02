@@ -13,22 +13,22 @@ import (
 
 type ContextData = map[string]interface{}
 
-func Evaluate(n actionlint.ExprNode, context ContextData) (interface{}, error) {
+func Evaluate(n actionlint.ExprNode, context ContextData) (*EvaluationResult, error) {
 	switch tn := n.(type) {
 	//
 	// Literals
 	//
 	case *actionlint.IntNode:
-		return tn.Value, nil
+		return &EvaluationResult{Value: tn.Value, Type: &actionlint.NumberType{}}, nil
 
 	case *actionlint.FloatNode:
-		return tn.Value, nil
+		return &EvaluationResult{Value: tn.Value, Type: &actionlint.NumberType{}}, nil
 
 	case *actionlint.StringNode:
-		return tn.Value, nil
+		return &EvaluationResult{Value: tn.Value, Type: &actionlint.StringType{}}, nil
 
 	case *actionlint.BoolNode:
-		return tn.Value, nil
+		return &EvaluationResult{Value: tn.Value, Type: &actionlint.BoolType{}}, nil
 
 	//
 	// Context access
@@ -40,7 +40,7 @@ func Evaluate(n actionlint.ExprNode, context ContextData) (interface{}, error) {
 			return nil, errors.New("unknown variable access: " + name)
 		}
 
-		return v, nil
+		return &EvaluationResult{Value: v, Type: &actionlint.AnyType{}}, nil
 
 	case *actionlint.ObjectDerefNode:
 		result, err := Evaluate(tn.Receiver, context)
@@ -48,7 +48,10 @@ func Evaluate(n actionlint.ExprNode, context ContextData) (interface{}, error) {
 			return nil, errs.Wrap(err, "could not evaluate receiver")
 		}
 
-		receiverContext, ok := result.(ContextData)
+		value := result.Value
+
+		// TODO: Is this always ContextData?
+		receiverContext, ok := value.(ContextData)
 		if !ok {
 			return nil, errors.New("invalid result received for receiver")
 		}
@@ -59,30 +62,41 @@ func Evaluate(n actionlint.ExprNode, context ContextData) (interface{}, error) {
 			return nil, errors.New("unknown context access: " + property)
 		}
 
-		return v, nil
+		// TODO: Should we try to determine the type here?
+		return &EvaluationResult{Value: v, Type: &actionlint.AnyType{}}, nil
 
 	case *actionlint.IndexAccessNode:
-		array, err := Evaluate(tn.Operand, context)
+		arrayResult, err := Evaluate(tn.Operand, context)
 		if err != nil {
 			return nil, errs.Wrap(err, "could not get operand for index access")
 		}
 
-		idx, err := Evaluate(tn.Index, context)
+		if _, ok := arrayResult.Type.(*actionlint.ArrayType); !ok {
+			return nil, errors.New("index access is not supported for non-array type")
+		}
+
+		idxResult, err := Evaluate(tn.Index, context)
 		if err != nil {
 			return nil, errs.Wrap(err, "could not evalute index for index access")
 		}
 
+		// TODO: Coerce other types?
+		if _, ok := idxResult.Type.(*actionlint.NumberType); !ok {
+			return nil, errors.New("index has to be a number type")
+		}
+
 		// TODO: Coerce idx to int
-		idxInt := idx.(int)
+		idxInt := idxResult.Value.(int)
 
 		// TODO: Assert type of array
-		arrayT := array.([]interface{})
+		arrayT := arrayResult.Value.([]interface{})
 
 		if idxInt < 0 || idxInt >= len(arrayT) {
 			return nil, errors.New("index out of range")
 		}
 
-		return arrayT[idxInt], nil
+		// TODO: assert type?
+		return &EvaluationResult{Value: arrayT[idxInt], Type: &actionlint.AnyType{}}, nil
 
 	//
 	// Function call
@@ -99,20 +113,23 @@ func Evaluate(n actionlint.ExprNode, context ContextData) (interface{}, error) {
 			args[i] = a
 		}
 
-		return fcall(tn.Callee, args)
+		// return fcall(tn.Callee, args)
+
+		return nil, errors.New("not implemented")
 
 	//
 	// Unary Operators
 	//
 	case *actionlint.NotOpNode:
-		r, err := Evaluate(tn.Operand, context)
+		_, err := Evaluate(tn.Operand, context)
 		if err != nil {
 			return nil, err
 		}
 
 		// TODO: Coerce values
-		b := r.(bool)
-		return !b, nil
+		// b := r.(bool)
+		//return !b, nil
+		return nil, errors.New("not implemented")
 
 	//
 	// Binary Operators
@@ -127,30 +144,40 @@ func Evaluate(n actionlint.ExprNode, context ContextData) (interface{}, error) {
 			return nil, err
 		}
 
+		if !left.Type.Assignable(right.Type) {
+			// TODO: Coerce values
+			return nil, errors.New("incompatible types for comparison")
+		}
+
 		// TODO: Support coercion
 		switch tn.Kind {
 		case actionlint.CompareOpNodeKindEq:
-			return left == right, nil
+			return &EvaluationResult{left.Value == right.Value, &actionlint.BoolType{}}, nil
+
+		case actionlint.CompareOpNodeKindNotEq:
+			return &EvaluationResult{left.Value != right.Value, &actionlint.BoolType{}}, nil
 
 			// TODO: Support other operators
 		}
 
 	case *actionlint.LogicalOpNode:
-		left, err := Evaluate(tn.Left, context)
+		_, err := Evaluate(tn.Left, context)
 		if err != nil {
 			return nil, err
 		}
-		right, err := Evaluate(tn.Right, context)
+		_, err = Evaluate(tn.Right, context)
 		if err != nil {
 			return nil, err
 		}
 
 		switch tn.Kind {
 		case actionlint.LogicalOpNodeKindAnd:
-			return isTruthy(left) && isTruthy(right), nil
+			// return isTruthy(left) && isTruthy(right), nil
+			return nil, nil
 
 		case actionlint.LogicalOpNodeKindOr:
-			return isTruthy(left) || isTruthy(right), nil
+			// return isTruthy(left) || isTruthy(right), nil
+			return nil, nil
 		}
 	}
 
