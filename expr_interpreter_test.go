@@ -22,32 +22,32 @@ func Test_Evaluate(t *testing.T) {
 		{
 			name:  "int",
 			input: "12",
-			want:  &EvaluationResult{Value: 12, Type: &actionlint.NumberType{}},
+			want:  &EvaluationResult{Value: float64(12), Type: &actionlint.NumberType{}},
 		},
 		{
 			name:  "negative int",
 			input: "-12",
-			want:  &EvaluationResult{Value: -12, Type: &actionlint.NumberType{}},
+			want:  &EvaluationResult{Value: float64(-12), Type: &actionlint.NumberType{}},
 		},
 		{
 			name:  "int 0",
 			input: "0",
-			want:  &EvaluationResult{Value: 0, Type: &actionlint.NumberType{}},
+			want:  &EvaluationResult{Value: float64(0), Type: &actionlint.NumberType{}},
 		},
 		{
 			name:  "float",
 			input: "12.5",
-			want:  &EvaluationResult{Value: 12.5, Type: &actionlint.NumberType{}},
+			want:  &EvaluationResult{Value: float64(12.5), Type: &actionlint.NumberType{}},
 		},
 		{
 			name:  "negative float",
 			input: "-12.3",
-			want:  &EvaluationResult{Value: -12.3, Type: &actionlint.NumberType{}},
+			want:  &EvaluationResult{Value: float64(-12.3), Type: &actionlint.NumberType{}},
 		},
 		{
 			name:  "float 0",
 			input: "0.0",
-			want:  &EvaluationResult{Value: 0.0, Type: &actionlint.NumberType{}},
+			want:  &EvaluationResult{Value: float64(0.0), Type: &actionlint.NumberType{}},
 		},
 		{
 			name:  "bool true",
@@ -72,20 +72,20 @@ func Test_Evaluate(t *testing.T) {
 		{
 			name:    "context access - one level",
 			input:   "input",
-			context: map[string]interface{}{"input": 42},
-			want:    &EvaluationResult{Value: 42, Type: &actionlint.NumberType{}},
+			context: map[string]interface{}{"input": float64(42)},
+			want:    &EvaluationResult{Value: float64(42), Type: &actionlint.NumberType{}},
 		},
 		{
-			name:    "context access - object dereferece",
+			name:    "context access - object access",
 			input:   "input.test2.test",
-			context: map[string]interface{}{"input": map[string]interface{}{"test2": map[string]interface{}{"test": 42}}},
-			want:    &EvaluationResult{Value: 42, Type: &actionlint.NumberType{}},
+			context: map[string]interface{}{"input": map[string]interface{}{"test2": map[string]interface{}{"test": float64(42)}}},
+			want:    &EvaluationResult{Value: float64(42), Type: &actionlint.NumberType{}},
 		},
 		{
-			name:    "context access - mixed dereferece",
+			name:    "context access - mixed access",
 			input:   "input.test[1]",
-			context: map[string]interface{}{"input": map[string]interface{}{"test": []interface{}{23, 42}}},
-			want:    &EvaluationResult{Value: 42, Type: &actionlint.NumberType{}},
+			context: map[string]interface{}{"input": map[string]interface{}{"test": []interface{}{float64(23), float64(42)}}},
+			want:    &EvaluationResult{Value: float64(42), Type: &actionlint.NumberType{}},
 		},
 		{
 			name:  "comparison eq - equal strings",
@@ -123,6 +123,16 @@ func Test_Evaluate(t *testing.T) {
 			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
 		},
 		{
+			name:  "comparison eq - equal string number",
+			input: "'2' == 2",
+			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "comparison eq - equal number string",
+			input: "2 == '2'",
+			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
+		},
+		{
 			name:  "fcall - startsWith",
 			input: "startsWith('test', 'tE')",
 			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
@@ -139,16 +149,16 @@ func Test_Evaluate(t *testing.T) {
 			want:    &EvaluationResult{Value: "42,1", Type: &actionlint.StringType{}},
 		},
 		{
+			name:  "fcall - string",
+			input: "join('foo')",
+			want:  &EvaluationResult{Value: "foo", Type: &actionlint.StringType{}},
+		},
+		{
 			name:    "fcall - join - custom seperator",
 			input:   "join(inputs.values, ':')",
 			context: map[string]interface{}{"inputs": map[string]interface{}{"values": []interface{}{"42", "1"}}},
 			want:    &EvaluationResult{Value: "42:1", Type: &actionlint.StringType{}},
 		},
-		// {
-		// 	name:  "comparison eq - equal string number",
-		// 	input: "'2' == 2",
-		// 	want:  true,
-		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
