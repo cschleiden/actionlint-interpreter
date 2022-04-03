@@ -130,10 +130,25 @@ func Evaluate(n actionlint.ExprNode, context ContextData) (*EvaluationResult, er
 			return &EvaluationResult{left.Equals(right), &actionlint.BoolType{}}, nil
 
 		case actionlint.CompareOpNodeKindNotEq:
-			// TODO: Implement
-			return &EvaluationResult{left.Value != right.Value, &actionlint.BoolType{}}, nil
+			return &EvaluationResult{!left.Equals(right), &actionlint.BoolType{}}, nil
 
-			// TODO: Support other operators
+		case actionlint.CompareOpNodeKindGreater:
+			return &EvaluationResult{left.GreaterThan(right), &actionlint.BoolType{}}, nil
+
+		case actionlint.CompareOpNodeKindGreaterEq:
+			return &EvaluationResult{
+				left.Equals(right) || left.GreaterThan(right),
+				&actionlint.BoolType{},
+			}, nil
+
+		case actionlint.CompareOpNodeKindLess:
+			return &EvaluationResult{left.LessThan(right), &actionlint.BoolType{}}, nil
+
+		case actionlint.CompareOpNodeKindLessEq:
+			return &EvaluationResult{
+				left.Equals(right) || left.LessThan(right),
+				&actionlint.BoolType{},
+			}, nil
 		}
 
 	case *actionlint.LogicalOpNode:

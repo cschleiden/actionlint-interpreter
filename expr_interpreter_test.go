@@ -108,6 +108,41 @@ func Test_Evaluate(t *testing.T) {
 			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
 		},
 		{
+			name:  "comparison neq",
+			input: "12 != 14",
+			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "comparison gt - false",
+			input: "12 > 14",
+			want:  &EvaluationResult{Value: false, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "comparison gt - true",
+			input: "14 > 12",
+			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "comparison gteq - true",
+			input: "12 >= 12",
+			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "comparison lt - false",
+			input: "14 < 12",
+			want:  &EvaluationResult{Value: false, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "comparison lt - true",
+			input: "12 < 14",
+			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "comparison lteq - true",
+			input: "12 <= 12",
+			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
+		},
+		{
 			name:  "comparison eq - bool not equal",
 			input: "true == false",
 			want:  &EvaluationResult{Value: false, Type: &actionlint.BoolType{}},
@@ -130,6 +165,36 @@ func Test_Evaluate(t *testing.T) {
 		{
 			name:  "comparison eq - equal number string",
 			input: "2 == '2'",
+			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "logical or - true",
+			input: "true || false",
+			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "logical or - false",
+			input: "false || false",
+			want:  &EvaluationResult{Value: false, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "logical and - true",
+			input: "true && true",
+			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "logical and - false",
+			input: "true && false",
+			want:  &EvaluationResult{Value: false, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "logical and complex - true",
+			input: "true && (1 == 2)",
+			want:  &EvaluationResult{Value: false, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "logical or complex - true",
+			input: "(1 == 2) || (1 == 1)",
 			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
 		},
 		{

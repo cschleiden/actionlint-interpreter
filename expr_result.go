@@ -182,7 +182,6 @@ func getExprType(value interface{}) actionlint.ExprType {
 // }
 
 func (ev *EvaluationResult) Equals(rhs *EvaluationResult) bool {
-	// CoerceTypes(ref canonicalLeftValue, ref canonicalRightValue, out var leftKind, out var rightKind);
 	lv, ltype, rv, rtype := coerceTypes(ev.Value, rhs.Value)
 
 	if ltype.String() != rtype.String() {
@@ -220,6 +219,73 @@ func (ev *EvaluationResult) Equals(rhs *EvaluationResult) bool {
 	case *actionlint.ObjectType, *actionlint.ArrayType:
 		// Check reference equality
 		return lv == rv
+	}
+
+	return false
+}
+
+func (ev *EvaluationResult) GreaterThan(rhs *EvaluationResult) bool {
+	lv, ltype, rv, rtype := coerceTypes(ev.Value, rhs.Value)
+
+	if ltype.String() != rtype.String() {
+		return false
+	}
+
+	switch ltype.(type) {
+	// Number, Number
+	case *actionlint.NumberType:
+		lf := lv.(float64)
+		rf := rv.(float64)
+		if math.IsNaN(lf) || math.IsNaN(rf) {
+			return false
+		}
+
+		return lf > rf
+
+		// String, String
+	case *actionlint.StringType:
+		ls := lv.(string)
+		rs := rv.(string)
+		return ls >= rs
+
+		// Boolean, Boolean
+	case *actionlint.BoolType:
+		lb := lv.(bool)
+		rb := rv.(bool)
+		return lb && !rb
+	}
+
+	return false
+}
+
+func (ev *EvaluationResult) LessThan(rhs *EvaluationResult) bool {
+	lv, ltype, rv, rtype := coerceTypes(ev.Value, rhs.Value)
+
+	if ltype.String() != rtype.String() {
+		return false
+	}
+
+	switch ltype.(type) {
+	// Number, Number
+	case *actionlint.NumberType:
+		lf := lv.(float64)
+		rf := rv.(float64)
+		if math.IsNaN(lf) || math.IsNaN(rf) {
+			return false
+		}
+		return lf < rf
+
+		// String, String
+	case *actionlint.StringType:
+		ls := lv.(string)
+		rs := rv.(string)
+		return ls < rs
+
+		// Boolean, Boolean
+	case *actionlint.BoolType:
+		lb := lv.(bool)
+		rb := rv.(bool)
+		return !lb && rb
 	}
 
 	return false
