@@ -126,3 +126,28 @@ func Test_coerceTypes(t *testing.T) {
 		})
 	}
 }
+
+func Test_parseNumber(t *testing.T) {
+	type args struct {
+		str string
+	}
+	tests := []struct {
+		name string
+		args args
+		want float64
+	}{
+		{"int", args{"1"}, 1},
+		{"neg int", args{"-1"}, -1},
+		{"float", args{"1.5"}, 1.5},
+		{"neg float", args{"-1.5"}, -1.5},
+		{"hex", args{"0xA"}, 10},
+		{"oct", args{"0o10"}, 8},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := parseNumber(tt.args.str); got != tt.want {
+				t.Errorf("parseNumber() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

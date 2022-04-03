@@ -217,7 +217,7 @@ func parseNumber(str string) float64 {
 		return v
 	}
 
-	if str[0] == '0' && len(str) > 3 && str[1] == 'x' && strAll(str[2:], func(x rune) bool { return (x >= '0' && x <= '9') || (x >= 'a' && x <= 'f') || (x >= 'A' && x <= 'F') }) {
+	if str[0] == '0' && len(str) > 2 && str[1] == 'x' && strAll(str[2:], func(x rune) bool { return (x >= '0' && x <= '9') || (x >= 'a' && x <= 'f') || (x >= 'A' && x <= 'F') }) {
 		if v, err := strconv.ParseInt(str[2:], 16, 64); err == nil {
 			return float64(v)
 		}
