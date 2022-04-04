@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/rhysd/actionlint"
@@ -82,6 +83,22 @@ var functions map[string]funcDef = map[string]funcDef{
 			}
 
 			return &EvaluationResult{strings.Join(v, separator), &actionlint.StringType{}}
+		},
+	},
+
+	"fromjson": {
+		argsCount: 1,
+		call: func(args ...*EvaluationResult) *EvaluationResult {
+			input := args[0]
+			inputStr := input.CoerceString()
+
+			var v ContextData
+			if err := json.Unmarshal([]byte(inputStr), &v); err != nil {
+				// Ignore
+				v = ContextData{}
+			}
+
+			return &EvaluationResult{v, &actionlint.ObjectType{}}
 		},
 	},
 }

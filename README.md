@@ -47,7 +47,7 @@ Not everything is implemented yet:
 - [ ] format
 - [x] join
 - [ ] toJSON
-- [ ] fromJSON
+- [x] fromJSON
 - [ ] hashFiles
 
 Status check functions:

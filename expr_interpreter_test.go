@@ -249,6 +249,24 @@ func Test_Evaluate(t *testing.T) {
 			context: map[string]interface{}{"inputs": map[string]interface{}{"values": []interface{}{"42", "1"}}},
 			want:    &EvaluationResult{Value: "42:1", Type: &actionlint.StringType{}},
 		},
+		{
+			name:  "fcall - fromJson",
+			input: "fromJson('{\"foo\": 42}')",
+			want: &EvaluationResult{Value: ContextData{
+				"foo": float64(42),
+			}, Type: &actionlint.ObjectType{}},
+		},
+
+		{
+			name:  "fcall - fromJson",
+			input: "fromJson('{\"foo\": 42}').foo",
+			want:  &EvaluationResult{Value: float64(42), Type: &actionlint.NumberType{}},
+		},
+		{
+			name:  "fcall - fromJson - empty string",
+			input: "fromJson('')",
+			want:  &EvaluationResult{Value: ContextData{}, Type: &actionlint.ObjectType{}},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
