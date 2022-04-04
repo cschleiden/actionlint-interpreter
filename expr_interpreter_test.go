@@ -223,6 +223,16 @@ func Test_Evaluate(t *testing.T) {
 			want:  &EvaluationResult{Value: false, Type: &actionlint.BoolType{}},
 		},
 		{
+			name:  "fcall - endsWith",
+			input: "endsWith('test', 'sT')",
+			want:  &EvaluationResult{Value: true, Type: &actionlint.BoolType{}},
+		},
+		{
+			name:  "fcall - startsWith - false",
+			input: "endsWith('test', 'xe')",
+			want:  &EvaluationResult{Value: false, Type: &actionlint.BoolType{}},
+		},
+		{
 			name:    "fcall - join",
 			input:   "join(inputs.values)",
 			context: map[string]interface{}{"inputs": map[string]interface{}{"values": []interface{}{"42", "1"}}},

@@ -43,7 +43,7 @@ Not everything is implemented yet:
 
 - [ ] contains
 - [x] startsWith
-- [ ] endsWith
+- [x] endsWith
 - [ ] format
 - [x] join
 - [ ] toJSON

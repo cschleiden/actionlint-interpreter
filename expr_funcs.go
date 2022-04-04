@@ -37,6 +37,28 @@ var functions map[string]funcDef = map[string]funcDef{
 		},
 	},
 
+	"endswith": {
+		argsCount: 2,
+		call: func(args ...*EvaluationResult) *EvaluationResult {
+			// TODO: Check types of parameters
+			left := args[0]
+			if !left.Primitive() {
+				return &EvaluationResult{false, &actionlint.BoolType{}}
+			}
+
+			right := args[1]
+			if !left.Primitive() {
+				return &EvaluationResult{false, &actionlint.BoolType{}}
+			}
+
+			ls := left.CoerceString()
+			rs := right.CoerceString()
+
+			// Expression string comparisons are string insensitive
+			return &EvaluationResult{strings.HasSuffix(strings.ToLower(ls), strings.ToLower(rs)), &actionlint.BoolType{}}
+		},
+	},
+
 	"join": {
 		argsCount: -1,
 		call: func(args ...*EvaluationResult) *EvaluationResult {
