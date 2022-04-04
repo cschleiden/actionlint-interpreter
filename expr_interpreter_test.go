@@ -12,7 +12,7 @@ func Test_Evaluate(t *testing.T) {
 		name    string
 		input   string
 		want    interface{}
-		context map[string]interface{}
+		context ContextData
 	}{
 		{
 			name:  "string literal",
@@ -70,23 +70,38 @@ func Test_Evaluate(t *testing.T) {
 			want:  &EvaluationResult{Value: false, Type: &actionlint.BoolType{}},
 		},
 		{
-			name:    "context access - one level",
+			name:    "context access",
 			input:   "input",
 			context: map[string]interface{}{"input": float64(42)},
 			want:    &EvaluationResult{Value: float64(42), Type: &actionlint.NumberType{}},
 		},
 		{
-			name:    "context access - object access",
+			name:    "context access - . object access",
 			input:   "input.test2.test",
 			context: map[string]interface{}{"input": map[string]interface{}{"test2": map[string]interface{}{"test": float64(42)}}},
 			want:    &EvaluationResult{Value: float64(42), Type: &actionlint.NumberType{}},
 		},
 		{
-			name:    "context access - mixed access",
+			name:    "context access - [] object access",
+			input:   "input.test2['test']",
+			context: map[string]interface{}{"input": map[string]interface{}{"test2": map[string]interface{}{"test": float64(42)}}},
+			want:    &EvaluationResult{Value: float64(42), Type: &actionlint.NumberType{}},
+		},
+		{
+			name:    "context access - array access",
 			input:   "input.test[1]",
 			context: map[string]interface{}{"input": map[string]interface{}{"test": []interface{}{float64(23), float64(42)}}},
 			want:    &EvaluationResult{Value: float64(42), Type: &actionlint.NumberType{}},
 		},
+		// {
+		// 	name:  "context access - wildcard",
+		// 	input: "input.*.foo",
+		// 	context: map[string]interface{}{"input": map[string]interface{}{
+		// 		"test":  map[string]interface{}{"foo": float64(32)},
+		// 		"test2": map[string]interface{}{"foo": float64(42)},
+		// 	}},
+		// 	want: &EvaluationResult{Value: []float64{32, 42}, Type: &actionlint.ArrayType{}},
+		// },
 		{
 			name:  "comparison eq - equal strings",
 			input: "'test' == 'test'",

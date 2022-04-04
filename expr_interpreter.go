@@ -45,22 +45,25 @@ func Evaluate(n actionlint.ExprNode, context ContextData) (*EvaluationResult, er
 
 		return &EvaluationResult{Value: v, Type: vt}, nil
 
+	// Access to object via "."
 	case *actionlint.ObjectDerefNode:
 		result, err := Evaluate(tn.Receiver, context)
 		if err != nil {
 			return nil, errs.Wrap(err, "could not evaluate receiver")
 		}
 
-		value := result.Value
+		if _, ok := result.Type.(*actionlint.ObjectType); !ok {
+			return &EvaluationResult{nil, &actionlint.NullType{}}, nil
+		}
 
-		// TODO: Is this always ContextData?
-		receiverContext, ok := value.(ContextData)
+		value := result.Value
+		obj, ok := value.(ContextData)
 		if !ok {
 			return nil, errors.New("invalid result received for receiver")
 		}
 
 		property := tn.Property
-		v, ok := receiverContext[property]
+		v, ok := obj[property]
 		if !ok {
 			return nil, errors.New("unknown context access: " + property)
 		}
@@ -69,20 +72,38 @@ func Evaluate(n actionlint.ExprNode, context ContextData) (*EvaluationResult, er
 
 		return &EvaluationResult{Value: v, Type: vt}, nil
 
+	// Access to array of object via []
 	case *actionlint.IndexAccessNode:
-		arrayResult, err := Evaluate(tn.Operand, context)
-		if err != nil {
-			return nil, errs.Wrap(err, "could not get operand for index access")
-		}
-
 		idxResult, err := Evaluate(tn.Index, context)
 		if err != nil {
 			return nil, errs.Wrap(err, "could not evalute index for index access")
 		}
 
-		if _, ok := arrayResult.Type.(*actionlint.ArrayType); ok {
-			return arrayAccess(arrayResult, idxResult)
+		objResult, err := Evaluate(tn.Operand, context)
+		if err != nil {
+			return nil, errs.Wrap(err, "could not get operand for index access")
 		}
+
+		if _, ok := objResult.Type.(*actionlint.ArrayType); ok {
+			return arrayAccess(objResult, idxResult)
+		}
+
+		if _, ok := objResult.Type.(*actionlint.ObjectType); ok {
+			return objectAccess(objResult, idxResult)
+		}
+
+		// break!
+		return nil, errors.New("invalid operand for index access")
+
+	// ArrayDeref is accessing an array with a wild-card, like `inputs.*.test`
+	case *actionlint.ArrayDerefNode:
+		// result, err := Evaluate(tn.Receiver, context)
+		// if err != nil {
+		// 	return nil, errs.Wrap(err, "could not evaluate receiver")
+		// }
+
+		// return result, nil
+		panic("wildcard access not implemented")
 
 	//
 	// Function call
@@ -219,8 +240,6 @@ func fcall(name string, args []*EvaluationResult) (*EvaluationResult, error) {
 }
 
 func arrayAccess(array *EvaluationResult, idx *EvaluationResult) (*EvaluationResult, error) {
-	// TODO: Handle wildcard
-
 	// TODO: Assert type of array
 	arrayT := array.Value.([]interface{})
 
@@ -238,4 +257,16 @@ func arrayAccess(array *EvaluationResult, idx *EvaluationResult) (*EvaluationRes
 	}
 
 	return &EvaluationResult{nil, &actionlint.AnyType{}}, nil
+}
+
+func objectAccess(obj *EvaluationResult, idx *EvaluationResult) (*EvaluationResult, error) {
+	// Index has to be string
+	if _, ok := idx.Type.(*actionlint.StringType); !ok {
+		return nil, errors.New("index must be string")
+	}
+
+	key := idx.Value.(string)
+	v := obj.Value.(ContextData)[key]
+
+	return &EvaluationResult{v, getExprType(v)}, nil
 }

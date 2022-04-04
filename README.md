@@ -5,7 +5,7 @@ Simple expression interpreter for _GitHub Actions Expressions_ operating on the 
 ## Usage
 
 ```golang
-expression := "1 <= 2"
+expression := "input.foo <= input.bar"
 
 // Lex & Parse
 lexer := actionlint.NewExprLexer(expression + "}}")
@@ -16,7 +16,12 @@ if perr != nil {
 }
 
 // Evaluate expressions
-result, err := Evaluate(n, map[string]interface{}{})
+result, err := Evaluate(n, ContextData{
+  "input": ContextData{
+    "foo": float64(1),
+    "bar": float64(2),
+  },
+})
 if err != nil {
   panic(err)
 }
@@ -31,7 +36,7 @@ Not everything is implemented yet:
 
 #### Context access
 
-- [ ] Finish object & array access
+- [x] Finish object & array access
 - [ ] Wildcard access (`inputs.*.foo`)
 
 #### Functions

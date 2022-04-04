@@ -7,7 +7,7 @@ import (
 )
 
 func ExampleEvaluate() {
-	expression := "1 <= 2"
+	expression := "input.foo <= input.bar"
 
 	// Lex & Parse
 	lexer := actionlint.NewExprLexer(expression + "}}")
@@ -18,7 +18,12 @@ func ExampleEvaluate() {
 	}
 
 	// Evaluate expressions
-	result, err := Evaluate(n, map[string]interface{}{})
+	result, err := Evaluate(n, ContextData{
+		"input": ContextData{
+			"foo": float64(1),
+			"bar": float64(2),
+		},
+	})
 	if err != nil {
 		panic(err)
 	}
